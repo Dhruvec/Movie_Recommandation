@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Movie Recommender System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: url('https://i.pinimg.com/736x/af/f0/6f/aff06fb3660a32e8f90bde5c46d3c80f.jpg') no-repeat center center fixed;
+            background-size: cover;
+            margin: 0;
+            padding: 0;
+            color: black;
+        }
+        .container {
+            background-color: rgba(255, 255, 255, 0.8);
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        h1 {
+            margin-bottom: 20px;
+        }
+        select, button {
+            padding: 10px;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        .recommendations {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+        .movie {
+            width: 160px;
+        }
+        .movie img {
+            width: 100%;
+            border-radius: 8px;
+        }
+        .movie-title {
+            margin-top: 8px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Movie Recommender System</h1>
+        <select id="movie-select">
+            <option value="">Select a movie</option>
+        </select>
+        <button id="recommend-btn">Recommend</button>
+        <div class="recommendations" id="recommendations"></div>
+    </div>
+
+    <script>
+        async function fetchMovies() {
+            const response = await fetch('/movies');
+            const movies = await response.json();
+            const select = document.getElementById('movie-select');
+            movies.forEach(movie => {
+                const option = document.createElement('option');
+                option.value = movie;
+                option.textContent = movie;
+                select.appendChild(option);
+            });
+        }
+
+        async function recommend() {
+            const select = document.getElementById('movie-select');
+            const movie = select.value;
+            if (!movie) {
+                alert('Please select a movie');
+                return;
+            }
+            const response = await fetch('/recommend', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({movie})
+            });
+            if (!response.ok) {
+                alert('Movie not found or error occurred');
+                return;
+            }
+            const recommendations = await response.json();
+            const container = document.getElementById('recommendations');
+            container.innerHTML = '';
+            recommendations.forEach(rec => {
+                const div = document.createElement('div');
+                div.className = 'movie';
+                div.innerHTML = `
+                    <img src="${rec.poster}" alt="${rec.title}" />
+                    <div class="movie-title">${rec.title}</div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', fetchMovies);
+        document.getElementById('recommend-btn').addEventListener('click', recommend);
+    </script>
+</body>
+</html>
